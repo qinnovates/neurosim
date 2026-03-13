@@ -39,13 +39,14 @@ export function ConsentModal({ onAccept }: ConsentModalProps) {
             </svg>
             <div>
               <h1 className="text-lg font-bold text-gray-100">Welcome to Open Neural Atlas</h1>
-              <span className="mono text-[10px] text-gray-600">Next-Gen Neural Monitoring Platform — by Qinnovate</span>
+              <span className="mono text-[10px] text-gray-600">Open Neurosecurity Stack — by Qinnovate</span>
             </div>
           </div>
 
           <p className="text-sm text-gray-300 leading-relaxed mb-4">
-            Open Neural Atlas is an open-source platform for real-time multi-modal neural monitoring
-            on brain-computer interfaces. It is under <strong className="text-amber-400">active development</strong>.
+            Open Neural Atlas is an open-source neurosecurity stack for brain-computer interfaces —
+            signal monitoring, threat analysis, and governance tooling in one platform.
+            It is under <strong className="text-amber-400">active development</strong>.
           </p>
 
           {/* Call for BCI community */}
@@ -58,7 +59,7 @@ export function ConsentModal({ onAccept }: ConsentModalProps) {
               We want Open Neural Atlas to be <strong className="text-gray-300">BCI-accessible</strong> from day one.
             </p>
             <p className="text-[11px] text-emerald-400/60 mt-2">
-              Reach out via GitHub Issues or Discussions to share your experience.
+              Reach out via <a href="https://github.com/qinnovates/neurosim/issues" target="_blank" rel="noopener noreferrer" className="underline hover:text-emerald-300">GitHub Issues</a> or <a href="https://github.com/qinnovates/neurosim/discussions" target="_blank" rel="noopener noreferrer" className="underline hover:text-emerald-300">Discussions</a> to share your experience.
             </p>
           </div>
 
@@ -77,9 +78,14 @@ export function ConsentModal({ onAccept }: ConsentModalProps) {
                 data over unsecured networks or on shared machines.
               </li>
               <li>
-                <strong className="text-gray-300">Know your security first.</strong> Before connecting real
+                <strong className="text-gray-300">Understand your security posture first.</strong> Before connecting real
                 hardware, ensure your environment is trusted, your network is encrypted, and you understand
                 the data you are transmitting.
+              </li>
+              <li>
+                <strong className="text-gray-300">Non-anonymized brain data is never transmitted in production.</strong> The
+                sample datasets in this demo are fully synthetic — generated from published research paradigms,
+                not recorded from real subjects. This is how we approach data protection by design.
               </li>
               <li>
                 All proposed frameworks (QIF, NISS, TARA, Neurowall) are <strong className="text-gray-300">unvalidated
