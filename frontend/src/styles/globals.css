@@ -1,0 +1,24 @@
+@import "tailwindcss";
+
+@theme {
+  --color-siem-bg: #0a0e17;
+  --color-siem-panel: #111827;
+  --color-siem-border: #1f2937;
+  --color-siem-text: #e5e7eb;
+  --color-siem-muted: #9ca3af;
+  --color-siem-green: #10b981;
+  --color-siem-amber: #f59e0b;
+  --color-siem-red: #ef4444;
+  --color-siem-blue: #3b82f6;
+  --color-siem-purple: #8b5cf6;
+  --color-siem-cyan: #06b6d4;
+}
+
+body {
+  font-family: "Inter", system-ui, -apple-system, sans-serif;
+  background: var(--color-siem-bg);
+}
+
+code, .mono {
+  font-family: "JetBrains Mono", "SF Mono", "Fira Code", monospace;
+}
