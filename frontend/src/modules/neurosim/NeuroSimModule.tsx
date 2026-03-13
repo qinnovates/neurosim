@@ -308,31 +308,16 @@ for ch in eeg_channels:
 function DatasetsTab() {
   const { send, connected, streaming } = useData();
   const [activeDataset, setActiveDataset] = useState<string | null>(null);
-  const [datasets, setDatasets] = useState<{ file: string; path: string; available: boolean }[] | null>(null);
   const [loadError, setLoadError] = useState<string | null>(null);
-
-  // Fetch dataset paths from backend on mount
-  useState(() => {
-    fetch(`http://${window.location.hostname}:8765/api/datasets`)
-      .then((r) => r.json())
-      .then((data) => setDatasets(data.datasets))
-      .catch(() => setDatasets(null));
-  });
 
   const loadDataset = (file: string) => {
     if (!connected) {
-      setLoadError("Not connected to backend. Start the backend server first.");
-      return;
-    }
-    // Find the absolute path from the backend response
-    const ds = datasets?.find((d) => d.file === file);
-    if (!ds) {
-      setLoadError("Dataset path not found. Refresh and try again.");
+      setLoadError("Engine not ready. Please wait a moment.");
       return;
     }
     setLoadError(null);
     setActiveDataset(file);
-    send({ action: "load_dataset", path: ds.path });
+    send({ action: "load_dataset", file });
   };
 
   return (
@@ -345,16 +330,9 @@ function DatasetsTab() {
           from published neuroscience paradigms. They are NOT real brain recordings. Use them for testing, learning,
           and development. All datasets use 16 channels (10-20 system) at 250 Hz.
         </p>
-        {connected && (
-          <p className="text-[10px] text-emerald-400 mt-2">
-            Backend connected — click "Load & Stream" on any dataset to play it through all modules.
-          </p>
-        )}
-        {!connected && (
-          <p className="text-[10px] text-amber-400 mt-2">
-            Backend not connected. Start the server to enable live dataset playback.
-          </p>
-        )}
+        <p className="text-[10px] text-emerald-400 mt-2">
+          Click "Load & Stream" on any dataset to play it through all modules.
+        </p>
       </div>
 
       {loadError && (
@@ -367,8 +345,6 @@ function DatasetsTab() {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
         {SAMPLE_DATASETS.map((ds) => {
           const isActive = activeDataset === ds.file && streaming;
-          const backendDs = datasets?.find((d) => d.file === ds.file);
-          const isAvailable = backendDs?.available !== false;
 
           return (
             <div key={ds.file} className={`bg-[#111827] border rounded-lg p-3 transition-colors ${
@@ -385,19 +361,17 @@ function DatasetsTab() {
               </div>
               <div className="flex items-center justify-between">
                 <code className="text-[9px] mono text-gray-700">data/{ds.file}</code>
-                {connected && isAvailable && (
-                  <button
-                    onClick={() => loadDataset(ds.file)}
-                    disabled={isActive}
-                    className={`mono text-[9px] px-2.5 py-1 rounded-lg border transition-colors ${
-                      isActive
-                        ? "bg-cyan-500/15 text-cyan-400 border-cyan-500/30"
-                        : "text-gray-400 border-[#1f2937] hover:bg-cyan-500/10 hover:text-cyan-400 hover:border-cyan-500/30"
-                    }`}
-                  >
-                    {isActive ? "Streaming..." : "Load & Stream"}
-                  </button>
-                )}
+                <button
+                  onClick={() => loadDataset(ds.file)}
+                  disabled={isActive}
+                  className={`mono text-[9px] px-2.5 py-1 rounded-lg border transition-colors ${
+                    isActive
+                      ? "bg-cyan-500/15 text-cyan-400 border-cyan-500/30"
+                      : "text-gray-400 border-[#1f2937] hover:bg-cyan-500/10 hover:text-cyan-400 hover:border-cyan-500/30"
+                  }`}
+                >
+                  {isActive ? "Streaming..." : "Load & Stream"}
+                </button>
               </div>
             </div>
           );
@@ -498,19 +472,19 @@ function LiveStatusTab() {
       <div className="bg-[#111827] border border-[#1f2937] rounded-xl p-4">
         <h3 className="mono text-xs text-gray-400 uppercase tracking-wider mb-3">Streaming Architecture</h3>
         <p className="text-[11px] text-gray-500 mb-3 leading-relaxed">
-          Open Neural Atlas uses BrainFlow's multicast UDP streaming architecture. The backend acquisition
-          service streams data via the ring buffer, and the frontend receives it over WebSocket. Multiple
-          modules can consume the same stream simultaneously without additional hardware connections.
+          Demo Atlas runs entirely in the browser using a Web Worker for data generation and FFT-based
+          band power computation. No backend server required. Sample datasets are loaded via fetch and
+          streamed through the same pipeline as live data.
         </p>
         <div className="flex items-center gap-3">
           <div className="px-3 py-2 bg-[#0a0e17] rounded-lg text-center">
-            <div className="text-[9px] mono text-gray-600">Backend</div>
-            <div className="text-[11px] mono text-emerald-400">BoardShim</div>
+            <div className="text-[9px] mono text-gray-600">Engine</div>
+            <div className="text-[11px] mono text-emerald-400">Web Worker</div>
           </div>
           <svg width="24" height="12" viewBox="0 0 24 12"><path d="M0 6h20M16 2l4 4-4 4" stroke="#374151" strokeWidth="1.5" fill="none" /></svg>
           <div className="px-3 py-2 bg-[#0a0e17] rounded-lg text-center">
             <div className="text-[9px] mono text-gray-600">Transport</div>
-            <div className="text-[11px] mono text-purple-400">WebSocket</div>
+            <div className="text-[11px] mono text-purple-400">postMessage</div>
           </div>
           <svg width="24" height="12" viewBox="0 0 24 12"><path d="M0 6h20M16 2l4 4-4 4" stroke="#374151" strokeWidth="1.5" fill="none" /></svg>
           <div className="px-3 py-2 bg-[#0a0e17] rounded-lg text-center">

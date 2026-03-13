@@ -209,22 +209,11 @@ function QuickStartHero() {
   const quickStartDataset = useCallback(
     (file: string, label: string) => {
       setLoadingDataset(label);
-      // Fetch dataset path from backend
-      fetch(`http://${window.location.hostname}:8765/api/datasets`)
-        .then((r) => r.json())
-        .then((data) => {
-          const ds = data.datasets?.find((d: { file: string }) => d.file === file);
-          if (ds?.path) {
-            send({ action: "load_dataset", path: ds.path });
-            setTimeout(() => {
-              setLoadingDataset(null);
-              navigate("/signal");
-            }, 500);
-          } else {
-            setLoadingDataset(null);
-          }
-        })
-        .catch(() => setLoadingDataset(null));
+      send({ action: "load_dataset", file });
+      setTimeout(() => {
+        setLoadingDataset(null);
+        navigate("/signal");
+      }, 300);
     },
     [send, navigate],
   );
@@ -283,20 +272,17 @@ function QuickStartHero() {
     );
   }
 
-  // Not connected
+  // Not connected (should not happen in demo mode, but keep as fallback)
   if (!connected) {
     return (
       <div className="bg-amber-500/5 border border-amber-500/20 rounded-2xl p-5 mb-6">
         <div className="flex items-center gap-3 mb-3">
           <div className="w-3 h-3 rounded-full bg-amber-500 animate-pulse" />
-          <h2 className="text-sm font-semibold text-amber-400">Backend not connected</h2>
+          <h2 className="text-sm font-semibold text-amber-400">Initializing...</h2>
         </div>
         <p className="text-[12px] text-gray-400 mb-3 leading-relaxed">
-          Start the backend server to stream data. All modules will activate automatically.
+          Loading the EEG engine. This should only take a moment.
         </p>
-        <pre className="bg-[#0a0e17] rounded-lg p-3 text-[11px] mono text-gray-500 overflow-x-auto">
-          cd backend && python3 -m uvicorn neurosim.main:app --port 8765
-        </pre>
       </div>
     );
   }
@@ -369,14 +355,14 @@ function GettingStarted() {
 
   const steps = [
     {
-      label: "Backend connected",
+      label: "Engine ready",
       done: connected,
-      action: connected ? undefined : "Start the server: python3 -m uvicorn neurosim.main:app --port 8765",
+      action: connected ? undefined : "Initializing...",
     },
     {
       label: "Start streaming data",
       done: streaming,
-      action: streaming ? undefined : "Use Quick Start above or click Start Streaming",
+      action: streaming ? undefined : "Use Quick Start above to load sample data",
     },
     {
       label: "View live signals",

@@ -4,16 +4,15 @@ import tailwindcss from "@tailwindcss/vite";
 
 export default defineConfig({
   plugins: [react(), tailwindcss()],
+  base: "/demo-atlas/",
   server: {
     port: 5173,
-    proxy: {
-      "/ws": {
-        target: "ws://localhost:8765",
-        ws: true,
-      },
-      "/api": {
-        target: "http://localhost:8765",
-      },
-    },
+  },
+  build: {
+    outDir: "dist",
+    assetsDir: "assets",
+  },
+  worker: {
+    format: "es",
   },
 });

@@ -1,9 +1,10 @@
 /**
- * Shared data context — WebSocket connection, EEG buffers, bands, alerts.
+ * Shared data context — Web Worker connection, EEG buffers, bands, alerts.
  * All modules consume from this single data source.
+ *
+ * Demo Atlas: uses an in-browser Web Worker instead of a WebSocket backend.
  */
-import { createContext, useContext, useCallback, useState, useRef, type ReactNode } from "react";
-import { useWebSocket } from "../hooks/useWebSocket";
+import { createContext, useContext, useCallback, useState, useRef, useEffect, type ReactNode } from "react";
 import { useEEGBuffer } from "../hooks/useEEGBuffer";
 import { useBandPower, type BandPowers } from "../hooks/useBandPower";
 import { useAlerts } from "../hooks/useAlerts";
@@ -43,9 +44,8 @@ interface DataContextValue {
 
 const DataContext = createContext<DataContextValue | null>(null);
 
-const WS_URL = `ws://${window.location.hostname}:${window.location.port || 8765}/ws`;
-
 export function DataProvider({ children }: { children: ReactNode }) {
+  const [connected, setConnected] = useState(false);
   const [streaming, setStreaming] = useState(false);
   const [paused, setPaused] = useState(false);
   const [sampleRate, setSampleRate] = useState(250);
@@ -57,9 +57,21 @@ export function DataProvider({ children }: { children: ReactNode }) {
   const { pushSamples, buffersRef, getChannelData, clearAll } = useEEGBuffer(16);
   const { bands, updateBands } = useBandPower();
   const { alerts, addAlerts, clearAlerts } = useAlerts();
+  const workerRef = useRef<Worker | null>(null);
+  const pausedRef = useRef(false);
 
-  const onMessage = useCallback(
-    (msg: ServerMessage) => {
+  // Keep pausedRef in sync
+  pausedRef.current = paused;
+
+  // Initialize Web Worker
+  useEffect(() => {
+    const worker = new Worker(
+      new URL("../workers/eeg-engine.ts", import.meta.url),
+      { type: "module" },
+    );
+
+    worker.onmessage = (e: MessageEvent<ServerMessage>) => {
+      const msg = e.data;
       switch (msg.type) {
         case "config":
           setSampleRate(msg.sample_rate);
@@ -70,7 +82,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
           setUptime(msg.uptime);
           break;
         case "eeg":
-          if (!paused) {
+          if (!pausedRef.current) {
             pushSamples(msg.samples);
             setSeq(msg.seq);
             if (msg.bands) updateBands(msg.bands);
@@ -78,11 +90,20 @@ export function DataProvider({ children }: { children: ReactNode }) {
           }
           break;
       }
-    },
-    [pushSamples, updateBands, addAlerts, paused],
-  );
+    };
 
-  const { connected, send } = useWebSocket({ url: WS_URL, onMessage });
+    workerRef.current = worker;
+    setConnected(true);
+
+    return () => {
+      worker.terminate();
+      setConnected(false);
+    };
+  }, [pushSamples, updateBands, addAlerts]);
+
+  const send = useCallback((cmd: Record<string, unknown>) => {
+    workerRef.current?.postMessage(cmd);
+  }, []);
 
   const startStreaming = useCallback(() => {
     clearAll();
