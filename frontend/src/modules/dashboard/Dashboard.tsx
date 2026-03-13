@@ -40,7 +40,7 @@ function ModuleTile({ module }: { module: ModuleDefinition }) {
       }`}
     >
       <div className="flex items-start justify-between mb-2">
-        <span className="text-2xl">{module.icon}</span>
+        <module.Icon size={28} style={{ color: module.color }} />
         <StatusBadge status={module.status} />
       </div>
       <h3

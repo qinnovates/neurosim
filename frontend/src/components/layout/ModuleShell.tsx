@@ -18,7 +18,7 @@ export function ModuleShell({ module, children, actions }: ModuleShellProps) {
       {/* Module header */}
       <header className="flex items-center justify-between px-4 py-2.5 border-b border-[#1f2937] bg-[#0d1117] flex-shrink-0">
         <div className="flex items-center gap-3">
-          <span className="text-xl">{module.icon}</span>
+          <module.Icon size={22} style={{ color: module.color }} />
           <div>
             <h1 className="text-sm font-semibold text-gray-200">{module.name}</h1>
             <p className="text-[11px] text-gray-500">{module.description}</p>

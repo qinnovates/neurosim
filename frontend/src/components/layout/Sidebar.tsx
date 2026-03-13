@@ -21,7 +21,7 @@ function SidebarItem({ module }: { module: ModuleDefinition }) {
         className="group relative flex items-center justify-center w-10 h-10 rounded-lg opacity-30 cursor-not-allowed"
         title={`${module.name} — Coming Soon`}
       >
-        <span className="text-lg">{module.icon}</span>
+        <module.Icon size={18} />
         <Tooltip name={module.name} status="Coming Soon" />
       </div>
     );

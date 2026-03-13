@@ -15,7 +15,7 @@ export function ComingSoon({ module, features, concept }: ComingSoonProps) {
   return (
     <ModuleShell module={module}>
       <div className="flex flex-col items-center justify-center h-full min-h-[400px]">
-        <span className="text-5xl mb-4">{module.icon}</span>
+        <module.Icon size={48} style={{ color: module.color }} className="mb-4" />
         <h2 className="text-lg font-semibold text-gray-300 mb-2">{module.name}</h2>
         <p className="text-sm text-gray-500 text-center max-w-md mb-6">
           {module.description}
