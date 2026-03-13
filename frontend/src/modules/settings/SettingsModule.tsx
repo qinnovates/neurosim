@@ -23,7 +23,7 @@ export default function SettingsModule() {
         {/* Board config */}
         <Section title="Board Configuration">
           <p className="text-[11px] text-gray-500 mb-3">
-            NeuroSIM currently uses BrainFlow's synthetic board for demonstration.
+            Open Neural Atlas currently uses BrainFlow's synthetic board for demonstration.
             To connect real hardware, update the backend configuration.
           </p>
           <div className="bg-[#0a0e17] border border-[#1f2937] rounded-lg p-3">

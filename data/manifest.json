@@ -1,0 +1,149 @@
+{
+  "version": "1.0",
+  "generated": "2026-03-12",
+  "sample_rate": 250,
+  "channels": 16,
+  "channel_names": [
+    "Fp1",
+    "Fp2",
+    "F3",
+    "F4",
+    "C3",
+    "C4",
+    "P3",
+    "P4",
+    "O1",
+    "O2",
+    "F7",
+    "F8",
+    "T3",
+    "T4",
+    "Pz",
+    "Oz"
+  ],
+  "datasets": [
+    {
+      "file": "resting_eyes_closed.csv",
+      "name": "Resting State -- Eyes Closed",
+      "description": "Alpha-dominant resting EEG with eyes closed",
+      "duration_seconds": 60,
+      "paradigm": "resting",
+      "dominant_band": "alpha",
+      "clinical_relevance": "Baseline resting state, used for alpha rhythm assessment",
+      "markers": false
+    },
+    {
+      "file": "resting_eyes_open.csv",
+      "name": "Resting State -- Eyes Open",
+      "description": "Beta-dominant EEG with alpha suppression during eyes-open resting",
+      "duration_seconds": 60,
+      "paradigm": "resting",
+      "dominant_band": "beta",
+      "clinical_relevance": "Comparison condition for alpha reactivity testing",
+      "markers": false
+    },
+    {
+      "file": "motor_imagery_left.csv",
+      "name": "Motor Imagery -- Left Hand",
+      "description": "Event-related desynchronization in right motor cortex (C4) during left hand imagery",
+      "duration_seconds": 30,
+      "paradigm": "motor_imagery",
+      "dominant_band": "mu/alpha",
+      "clinical_relevance": "BCI control paradigm, motor rehabilitation assessment",
+      "markers": true,
+      "marker_codes": {
+        "1": "cue_onset",
+        "2": "rest_onset"
+      }
+    },
+    {
+      "file": "motor_imagery_right.csv",
+      "name": "Motor Imagery -- Right Hand",
+      "description": "Event-related desynchronization in left motor cortex (C3) during right hand imagery",
+      "duration_seconds": 30,
+      "paradigm": "motor_imagery",
+      "dominant_band": "mu/alpha",
+      "clinical_relevance": "BCI control paradigm, motor rehabilitation assessment",
+      "markers": true,
+      "marker_codes": {
+        "1": "cue_onset",
+        "2": "rest_onset"
+      }
+    },
+    {
+      "file": "p300_oddball.csv",
+      "name": "P300 Oddball Paradigm",
+      "description": "P300 event-related potential with target (20%) and non-target (80%) stimuli",
+      "duration_seconds": 120,
+      "paradigm": "erp",
+      "dominant_band": "broadband",
+      "clinical_relevance": "Cognitive assessment, P300-based BCI speller, attention evaluation",
+      "markers": true,
+      "marker_codes": {
+        "1": "non_target",
+        "2": "target"
+      }
+    },
+    {
+      "file": "ssvep_12hz.csv",
+      "name": "SSVEP at 12Hz",
+      "description": "Steady-state visually evoked potential at 12Hz in occipital channels",
+      "duration_seconds": 30,
+      "paradigm": "ssvep",
+      "dominant_band": "12Hz + harmonics",
+      "clinical_relevance": "SSVEP-based BCI paradigm, visual pathway assessment",
+      "markers": true,
+      "marker_codes": {
+        "1": "stimulus_on",
+        "2": "stimulus_off"
+      }
+    },
+    {
+      "file": "sleep_stage_n2.csv",
+      "name": "Sleep Stage N2",
+      "description": "NREM stage 2 sleep with sleep spindles (12-14Hz) and K-complexes",
+      "duration_seconds": 60,
+      "paradigm": "sleep",
+      "dominant_band": "delta/sigma",
+      "clinical_relevance": "Sleep staging, sleep disorder assessment, memory consolidation research",
+      "markers": false
+    },
+    {
+      "file": "artifact_eye_blink.csv",
+      "name": "Eye Blink Artifacts",
+      "description": "Clean EEG with periodic eye blink artifacts at frontal channels (Fp1, Fp2)",
+      "duration_seconds": 30,
+      "paradigm": "artifact",
+      "dominant_band": "alpha",
+      "clinical_relevance": "Artifact rejection algorithm testing and validation",
+      "markers": true,
+      "marker_codes": {
+        "99": "eye_blink"
+      }
+    },
+    {
+      "file": "seizure_simulation.csv",
+      "name": "Seizure Simulation",
+      "description": "Simulated focal-to-generalized epileptiform activity with evolving rhythmic discharges",
+      "duration_seconds": 30,
+      "paradigm": "epilepsy",
+      "dominant_band": "evolving (10Hz to 3Hz)",
+      "clinical_relevance": "Seizure detection algorithm testing, epilepsy monitoring development",
+      "markers": true,
+      "marker_codes": {
+        "1": "seizure_onset",
+        "2": "seizure_end"
+      }
+    },
+    {
+      "file": "meditation_theta.csv",
+      "name": "Meditation -- Theta Enhancement",
+      "description": "Enhanced frontal midline theta with intermittent alpha and reduced beta during meditation",
+      "duration_seconds": 60,
+      "paradigm": "meditation",
+      "dominant_band": "theta",
+      "clinical_relevance": "Neurofeedback training, mindfulness research, attention studies",
+      "markers": false
+    }
+  ]
+}

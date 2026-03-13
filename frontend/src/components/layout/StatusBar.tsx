@@ -1,3 +1,6 @@
+/**
+ * Bottom status bar — connection, streaming, metrics, qinnovate watermark.
+ */
 interface StatusBarProps {
   connected: boolean;
   streaming: boolean;
@@ -5,9 +8,10 @@ interface StatusBarProps {
   channels: number;
   seq: number;
   uptime: number;
+  onTourClick?: () => void;
 }
 
-export function StatusBar({ connected, streaming, sampleRate, channels, seq, uptime }: StatusBarProps) {
+export function StatusBar({ connected, streaming, sampleRate, channels, seq, uptime, onTourClick }: StatusBarProps) {
   const formatUptime = (s: number) => {
     const m = Math.floor(s / 60);
     const sec = Math.floor(s % 60);
@@ -18,7 +22,7 @@ export function StatusBar({ connected, streaming, sampleRate, channels, seq, upt
     <div className="flex items-center gap-6 px-4 py-1.5 bg-[#0d1117] border-t border-[#1f2937] text-[11px] mono text-gray-500">
       <span className="flex items-center gap-1.5">
         <span
-          className={`w-1.5 h-1.5 rounded-full ${connected ? "bg-emerald-500" : "bg-red-500 animate-pulse"}`}
+          className={`w-1.5 h-1.5 rounded-full ${connected ? "bg-emerald-500" : "bg-amber-500 animate-pulse"}`}
         />
         {connected ? "CONNECTED" : "DISCONNECTED"}
       </span>
@@ -26,7 +30,25 @@ export function StatusBar({ connected, streaming, sampleRate, channels, seq, upt
       <span>{sampleRate} Hz</span>
       <span>{channels} CH</span>
       <span>SEQ {seq}</span>
-      <span className="ml-auto">{formatUptime(uptime)}</span>
+
+      {/* Tour relaunch */}
+      {onTourClick && (
+        <button
+          onClick={onTourClick}
+          className="text-gray-600 hover:text-gray-400 transition-colors"
+          title="Relaunch guided tour"
+        >
+          ?
+        </button>
+      )}
+
+      {/* Spacer + watermark */}
+      <span className="ml-auto flex items-center gap-3">
+        <span>{formatUptime(uptime)}</span>
+        <span className="text-[9px] text-gray-700">
+          qinnovate
+        </span>
+      </span>
     </div>
   );
 }

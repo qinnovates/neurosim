@@ -1,6 +1,6 @@
 /**
  * Integrations module — APIs, data feeds, KQL query engine, and tool connections.
- * Central hub for connecting NeuroSIM to external data sources and QIF data lake.
+ * Central hub for connecting Open Neural Atlas to external data sources and QIF data lake.
  */
 import { useState } from "react";
 import { ModuleShell } from "../../components/layout/ModuleShell";
@@ -141,7 +141,7 @@ const DATA_SOURCES: DataSource[] = [
     type: "tool",
     description: "Industry-standard EEG analysis — export sessions for deep analysis",
     status: "coming-soon",
-    details: "Export NeuroSIM sessions in formats compatible with MNE-Python for advanced analysis: source localization, time-frequency decomposition, connectivity analysis.",
+    details: "Export Open Neural Atlas sessions in formats compatible with MNE-Python for advanced analysis: source localization, time-frequency decomposition, connectivity analysis.",
   },
   {
     id: "lsl",

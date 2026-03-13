@@ -3,6 +3,7 @@ export const SIEM = {
   bg: "#0a0e17",
   panel: "#111827",
   border: "#1f2937",
+  borderHover: "#374151",
   text: "#e5e7eb",
   muted: "#9ca3af",
   green: "#10b981",
@@ -35,10 +36,25 @@ export const CHANNEL_COLORS = [
   "#34d399", // light emerald
 ] as const;
 
-/** Severity color mapping. */
+/**
+ * Severity scale — 6-level, ISO 22324 aligned.
+ * Shape + color + text for WCAG AA accessibility.
+ * Red is reserved EXCLUSIVELY for critical/alert states.
+ */
 export const SEVERITY_COLORS: Record<string, string> = {
-  critical: "#ef4444",
-  high: "#f97316",
-  medium: "#f59e0b",
-  low: "#3b82f6",
+  critical: "#ef4444", // Red — immediate action required
+  high: "#f97316",     // Orange — requires action soon
+  medium: "#f59e0b",   // Amber — attention needed
+  low: "#3b82f6",      // Blue — informational, not urgent
+  info: "#6b7280",     // Gray — passive notification
 };
+
+export const SEVERITY_SHAPES: Record<string, string> = {
+  critical: "diamond",
+  high: "triangle",
+  medium: "square",
+  low: "circle",
+  info: "hexagon",
+};
+
+export const SEVERITY_ORDER = ["critical", "high", "medium", "low", "info"] as const;

@@ -14,9 +14,94 @@
   --color-siem-cyan: #06b6d4;
 }
 
+/* Dark mode (default) */
+:root, .dark {
+  --ns-bg: #0a0e17;
+  --ns-surface: #0d1117;
+  --ns-panel: #111827;
+  --ns-border: #1f2937;
+  --ns-border-hover: #374151;
+  --ns-text: #e5e7eb;
+  --ns-text-secondary: #9ca3af;
+  --ns-text-muted: #6b7280;
+  --ns-text-faint: #374151;
+}
+
+/* Light mode */
+.light {
+  --ns-bg: #f8fafc;
+  --ns-surface: #ffffff;
+  --ns-panel: #f1f5f9;
+  --ns-border: #e2e8f0;
+  --ns-border-hover: #cbd5e1;
+  --ns-text: #1e293b;
+  --ns-text-secondary: #475569;
+  --ns-text-muted: #94a3b8;
+  --ns-text-faint: #cbd5e1;
+}
+
+/* Light mode overrides for hardcoded dark colors */
+.light body {
+  background: var(--ns-bg);
+  color: var(--ns-text);
+}
+
+.light [class*="bg-[#0a0e17]"],
+.light [class*="bg-[#0d1117]"] {
+  background-color: var(--ns-surface) !important;
+}
+
+.light [class*="bg-[#111827]"] {
+  background-color: var(--ns-panel) !important;
+}
+
+.light [class*="border-[#1f2937]"] {
+  border-color: var(--ns-border) !important;
+}
+
+.light [class*="border-[#374151]"] {
+  border-color: var(--ns-border-hover) !important;
+}
+
+.light [class*="text-gray-200"],
+.light [class*="text-gray-100"],
+.light [class*="text-white"] {
+  color: var(--ns-text) !important;
+}
+
+.light [class*="text-gray-300"] {
+  color: #334155 !important;
+}
+
+.light [class*="text-gray-400"] {
+  color: var(--ns-text-secondary) !important;
+}
+
+.light [class*="text-gray-500"] {
+  color: var(--ns-text-muted) !important;
+}
+
+.light [class*="text-gray-600"] {
+  color: #94a3b8 !important;
+}
+
+.light [class*="text-gray-700"] {
+  color: #cbd5e1 !important;
+}
+
+.light [class*="bg-white\\/5"],
+.light [class*="bg-white\\/10"] {
+  background-color: rgba(0, 0, 0, 0.05) !important;
+}
+
+.light [class*="ring-white\\/20"] {
+  --tw-ring-color: rgba(0, 0, 0, 0.1) !important;
+}
+
 body {
   font-family: "Inter", system-ui, -apple-system, sans-serif;
-  background: var(--color-siem-bg);
+  background: var(--ns-bg);
+  transition: background-color 0.2s, color 0.2s;
 }
 
 code, .mono {

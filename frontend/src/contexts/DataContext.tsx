@@ -14,6 +14,7 @@ interface DataContextValue {
   // Connection
   connected: boolean;
   streaming: boolean;
+  paused: boolean;
   send: (cmd: Record<string, unknown>) => void;
 
   // Board info
@@ -37,6 +38,7 @@ interface DataContextValue {
   startStreaming: () => void;
   stopStreaming: () => void;
   clearAlerts: () => void;
+  togglePause: () => void;
 }
 
 const DataContext = createContext<DataContextValue | null>(null);
@@ -45,6 +47,7 @@ const WS_URL = `ws://${window.location.hostname}:${window.location.port || 8765}
 
 export function DataProvider({ children }: { children: ReactNode }) {
   const [streaming, setStreaming] = useState(false);
+  const [paused, setPaused] = useState(false);
   const [sampleRate, setSampleRate] = useState(250);
   const [channelNames, setChannelNames] = useState<string[]>([]);
   const [threshold, setThresholdState] = useState(150);
@@ -67,14 +70,16 @@ export function DataProvider({ children }: { children: ReactNode }) {
           setUptime(msg.uptime);
           break;
         case "eeg":
-          pushSamples(msg.samples);
-          setSeq(msg.seq);
-          if (msg.bands) updateBands(msg.bands);
-          if (msg.alerts) addAlerts(msg.alerts);
+          if (!paused) {
+            pushSamples(msg.samples);
+            setSeq(msg.seq);
+            if (msg.bands) updateBands(msg.bands);
+            if (msg.alerts) addAlerts(msg.alerts);
+          }
           break;
       }
     },
-    [pushSamples, updateBands, addAlerts],
+    [pushSamples, updateBands, addAlerts, paused],
   );
 
   const { connected, send } = useWebSocket({ url: WS_URL, onMessage });
@@ -89,6 +94,8 @@ export function DataProvider({ children }: { children: ReactNode }) {
     send({ action: "stop" });
   }, [send]);
 
+  const togglePause = useCallback(() => setPaused((p) => !p), []);
+
   const setThreshold = useCallback(
     (v: number) => {
       setThresholdState(v);
@@ -102,6 +109,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
       value={{
         connected,
         streaming,
+        paused,
         send,
         sampleRate,
         channelNames:
@@ -122,6 +130,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
         startStreaming,
         stopStreaming,
         clearAlerts,
+        togglePause,
       }}
     >
       {children}

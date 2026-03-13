@@ -1,12 +1,12 @@
 /**
- * Module registry — all NeuroSIM modules self-register here.
+ * Module registry — all Open Neural Atlas modules self-register here.
  * Dashboard reads this to render tiles. Sidebar reads this for nav.
  */
 import React, { lazy, type ComponentType, type LazyExoticComponent } from "react";
 import {
   IconDashboard, IconSignal, IconAlert, IconNeurowall, IconTara,
   IconNiss, IconRunemate, IconSpectrum, IconBrainMap, IconSession,
-  IconSettings, IconIntegrations,
+  IconSettings, IconIntegrations, IconNeuroSim,
 } from "../components/icons/ModuleIcons";
 
 export type ModuleStatus = "active" | "coming-soon" | "beta";
@@ -79,6 +79,22 @@ export const MODULES: ModuleDefinition[] = [
     color: "#ef4444",
   },
 
+  {
+    id: "neurosim",
+    name: "NeuroSIM",
+    shortName: "NeuroSIM",
+    description: "BrainFlow integration hub — connect devices, explore the API, load sample datasets, and stream live data.",
+    detailedHelp:
+      "NeuroSIM is the neural simulator engine inside Open Neural Atlas. It connects to BrainFlow's 40+ supported devices, lets you explore the full API (BoardShim, DataFilter, MLModel), load sample EEG datasets for testing, and manage live data streams. Think of it as the hardware control center: pick a board, configure channels, start streaming, and pipe data to every other module in the platform.",
+    icon: "🧪",
+    Icon: IconNeuroSim,
+    status: "active",
+    category: "monitoring",
+    path: "/neurosim",
+    component: lazy(() => import("./neurosim/NeuroSimModule")),
+    color: "#22d3ee",
+  },
+
   // === SECURITY ===
   {
     id: "neurowall",
@@ -97,14 +113,14 @@ export const MODULES: ModuleDefinition[] = [
   },
   {
     id: "tara",
-    name: "TARA Console",
+    name: "TARA Scanner",
     shortName: "TARA",
-    description: "Simulate attack techniques against brain signals to test how well your defenses work.",
+    description: "Scan, test, and replay attack techniques against brain signals — like Burp Suite for BCI.",
     detailedHelp:
-      "TARA is a catalog of known attack techniques that could theoretically target brain-computer interfaces — like injecting false signals, disrupting frequencies, or replaying recorded brain data. The TARA Console lets you select an attack technique, configure its intensity, and inject it into the live signal stream. This is a research and testing tool: by simulating attacks in a safe environment, you can evaluate whether detection rules and firewalls would catch them in real life. All techniques reference the QIF threat catalog.",
+      "TARA Scanner is a penetration testing tool for brain-computer interfaces. Browse the full TARA technique catalog (13 attack types across 6 categories), run automated scan profiles against live or synthetic streams, use the Repeater to inject individual techniques with configurable parameters, and compare clean vs. attacked signals in the Comparer. Think of it as Burp Suite for neural signals — scan for vulnerabilities, review findings, and strengthen your defenses.",
     icon: "⚔️",
     Icon: IconTara,
-    status: "coming-soon",
+    status: "active",
     category: "security",
     path: "/tara",
     component: lazy(() => import("./tara/TaraModule")),
@@ -180,7 +196,7 @@ export const MODULES: ModuleDefinition[] = [
     shortName: "Integrations",
     description: "Connect to APIs, data feeds, and the QIF knowledge base — query 62 tables with KQL.",
     detailedHelp:
-      "The Integrations hub connects NeuroSIM to external data sources and the QIF knowledge base. Browse available APIs (BrainFlow, Crossref, PubMed, NVD), subscribe to security feeds (CISA, FDA, arXiv), and query the full QIF data lake using Kusto Query Language (KQL). The data lake contains 62 tables with 3,500+ rows covering TARA techniques, brain anatomy, device inventory, market data, and research citations. This is the same data engine that powers qinnovate.com dashboards.",
+      "The Integrations hub connects Open Neural Atlas to external data sources and the QIF knowledge base. Browse available APIs (BrainFlow, Crossref, PubMed, NVD), subscribe to security feeds (CISA, FDA, arXiv), and query the full QIF data lake using Kusto Query Language (KQL). The data lake contains 62 tables with 3,500+ rows covering TARA techniques, brain anatomy, device inventory, market data, and research citations. This is the same data engine that powers qinnovate.com dashboards.",
     icon: "🔌",
     Icon: IconIntegrations,
     status: "active",
@@ -210,7 +226,7 @@ export const MODULES: ModuleDefinition[] = [
     shortName: "Settings",
     description: "Configure your board connection, display preferences, and detection thresholds.",
     detailedHelp:
-      "Settings lets you configure which BCI device to connect to, adjust display options (channel count, time window, color scheme), set detection thresholds, and manage your NeuroSIM preferences.",
+      "Settings lets you configure which BCI device to connect to, adjust display options (channel count, time window, color scheme), set detection thresholds, and manage your Open Neural Atlas preferences.",
     icon: "⚙️",
     Icon: IconSettings,
     status: "active",

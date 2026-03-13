@@ -4,6 +4,20 @@
 
 The first open-source tool that bridges BCI signal processing and security operations into a unified visual platform. Plug in real EEG data via BrainFlow, simulate TARA attack techniques, and watch a neural firewall detect and respond in real time — rendered like a SIEM dashboard.
 
+## A Call to the BCI Community
+
+**If you use a brain-computer interface, we want your help.**
+
+The long-term goal of NeuroSIM is to be built *with* and *for* real BCI users — especially those looking for careers in protecting other BCI users. The neurosecurity field is young. The people who will define what "secure" means for neural interfaces are the people who use them today.
+
+We need your feedback on:
+- **UI accessibility** — Does NeuroSIM work with your BCI setup? What's missing?
+- **Signal representation** — Are we showing the right data in the right way?
+- **Threat realism** — Do the simulated attacks map to real concerns you have?
+- **Workflow** — What would make this tool useful in your daily life?
+
+If you're a BCI user, researcher, clinician, or engineer interested in neurosecurity, open an Issue or Discussion. Your experience is the most valuable input this project can receive.
+
 ## Why This Exists
 
 Every BCI tool today is either a neuroscience tool with zero security awareness, or an ML security tool with zero signal-level awareness. Nothing bridges them. NeuroSIM does.
@@ -16,6 +30,17 @@ Every BCI tool today is either a neuroscience tool with zero security awareness,
 
 NeuroSIM fills that gap.
 
+## Disclaimer
+
+**This software is under active development.**
+
+- Provided as-is for research and educational purposes
+- The developer is not liable for any damage, data loss, or unintended consequences
+- **Always use simulated EEG data** if your host machine is not secured
+- Real BCI signals are sensitive biometric data — do not stream over unsecured networks
+- **Know your security first** before connecting real hardware
+- All proposed frameworks (QIF, NISS, TARA, Neurowall) are unvalidated research tools, not production security products
+
 ## Purpose
 
 1. **Demonstrate** what neurosecurity operations look like — visually, in real time
@@ -23,6 +48,7 @@ NeuroSIM fills that gap.
 3. **Visualize** neural firewall (Neurowall) detection and response
 4. **Connect** real BrainFlow EEG data to a simulated security operations environment
 5. **Package** as a standalone tool that researchers, students, and the BCI industry can use
+6. **Gather feedback** from real BCI users to make neurosecurity tools BCI-accessible
 
 ## Architecture
 
@@ -47,6 +73,47 @@ NeuroSIM fills that gap.
 └─────────────────────────────────────────────────────┘
 ```
 
+## Current Features (v0.1)
+
+### Dashboard
+- SIEM-style landing page with KPI tiles, sparklines, and trend deltas
+- Alert summary grouped by severity with shape-redundant badges (WCAG AA)
+- Pause/snapshot mode to freeze display for analysis
+- Global search bar (Cmd+K) across all modules
+
+### Signal Monitor
+- Real-time 16-channel EEG waveform rendering on HTML Canvas at 30fps
+- HiDPI-aware with 16-color channel palette
+
+### Spectrum Analyzer
+- Frequency band decomposition: Delta, Theta, Alpha, Beta, Gamma
+- Welch PSD method with trapezoidal integration
+
+### Alert Center
+- Severity-filtered alert log with shape + color + text indicators
+- Threshold-based anomaly detection (amplitude monitoring)
+- Grouped by severity: Critical (diamond), High (triangle), Medium (square), Low (circle)
+
+### Integrations Hub
+- 15 data sources: BrainFlow, Crossref, Semantic Scholar, PubMed, NVD, CISA, FDA, arXiv, and more
+- KQL query editor for the QIF data lake (62 tables, 3,500+ rows)
+- Tabbed interface: Overview, KQL Query, APIs, Feeds, Tools & Data
+
+### Coming Soon Modules
+- **Neurowall** — Neural firewall with rule engine and real-time detection
+- **TARA Console** — Attack simulation using the QIF threat catalog
+- **NISS Scoring** — Signal-level impact measurement (proposed metric)
+- **Runemate** — Neural protocol inspector
+- **Brain Map** — Spatial activity visualization on a head diagram
+- **Session Recorder** — Record, replay, and export sessions
+
+### UI Features
+- Dark/light mode toggle with localStorage persistence
+- Sidebar with expand-on-hover navigation and grayscale-to-color icon states
+- First-run consent disclaimer and 7-step guided tour
+- Custom SVG icon system (13 monoline icons)
+- qinnovate watermark
+
 ## Data Sources
 
 | Source | Mode | Description |
@@ -56,79 +123,76 @@ NeuroSIM fills that gap.
 | File replay | Playback | Recorded EEG sessions (.csv, .edf) |
 | MOABB datasets | Research | 36 public EEG-BCI datasets for benchmarking |
 
-## Core Features (Requirements)
-
-### 1. Signal Monitor (Brain SIEM Dashboard)
-- Real-time multi-channel EEG waveform display
-- Frequency band decomposition (delta, theta, alpha, beta, gamma)
-- Power spectral density visualization
-- Channel correlation matrix
-- Anomaly scoring per channel and aggregate
-- Timeline with event markers
-
-### 2. Threat Console (TARA Attack Simulation)
-- Select TARA techniques from the catalog
-- Inject attack signals into the live stream:
-  - Amplitude manipulation (QIF-T0001 style)
-  - Frequency injection (QIF-T0023 style)
-  - Phase disruption (QIF-T0067 style)
-  - Signal replay attacks
-  - Adversarial perturbations on classifier input
-- Visual diff: clean signal vs. attacked signal
-- NISS impact score per attack (proposed metric, unvalidated)
-
-### 3. Neurowall (Neural Firewall Visualization)
-- Rule engine: amplitude bounds, rate limiting, frequency guards
-- Real-time detection overlay on signal monitor
-- Block/alert/pass decisions visualized per sample window
-- Detection latency metrics
-- False positive / false negative tracking
-- Firewall rule editor (drag-and-drop or code)
-
-### 4. Reporting
-- Session summary with attack timeline
-- Detection accuracy metrics
-- Export to PDF / JSON
-- Screenshots of dashboard state
-
-## Tech Stack (Proposed)
+## Tech Stack
 
 | Layer | Technology | Rationale |
 |-------|-----------|-----------|
 | Data acquisition | BrainFlow (Python) | Board-agnostic, synthetic + real hardware, cross-platform |
-| Signal processing | MNE-Python, SciPy | Industry-standard DSP, FFT, filtering |
-| Backend / engine | Python (FastAPI or Flask) | WebSocket streaming to UI |
-| Frontend / UI | React + TypeScript | Interactive dashboard, real-time charts |
-| Visualization | Recharts / D3.js / Three.js | Signal plots, 3D brain view, heatmaps |
+| Signal processing | BrainFlow DataFilter, SciPy | FFT, filtering, band power, peak detection |
+| Backend | Python (FastAPI) | WebSocket streaming via msgpack binary encoding |
+| Frontend | React 19 + TypeScript + Tailwind v4 | SIEM-style dashboard, canvas-based rendering |
+| Build | Vite 8 | Fast HMR, code splitting, lazy module loading |
 | Threat catalog | QIF TARA JSON | Attack technique definitions and parameters |
-| Packaging | Electron or web app | Standalone desktop app or hosted tool |
+
+## Supported Hardware
+
+| Device | Board ID | Channels | Sample Rate |
+|--------|----------|----------|-------------|
+| Synthetic (no hardware) | SYNTHETIC_BOARD (-1) | 8 | 250 Hz |
+| OpenBCI Cyton | CYTON_BOARD (0) | 8 | 250 Hz |
+| OpenBCI Cyton + Daisy | CYTON_DAISY_BOARD (2) | 16 | 125 Hz |
+| OpenBCI Ganglion | GANGLION_BOARD (1) | 4 | 200 Hz |
+| Muse 2 | MUSE_2_BOARD (38) | 4 | 256 Hz |
+| Muse S | MUSE_S_BOARD (21) | 4 | 256 Hz |
+| Neurosity Crown | CROWN_BOARD (57) | 8 | 256 Hz |
 
 ## Roadmap
 
-### Phase 1: Signal Monitor MVP
-- [ ] BrainFlow synthetic board streaming to WebSocket
-- [ ] React dashboard with real-time multi-channel EEG plot
-- [ ] Frequency band decomposition display
-- [ ] Basic anomaly detection (threshold-based)
+### Phase 1: Signal Monitor MVP ✅
+- [x] BrainFlow synthetic board streaming to WebSocket
+- [x] React dashboard with real-time multi-channel EEG canvas
+- [x] Frequency band decomposition display
+- [x] Basic anomaly detection (threshold-based)
+- [x] SIEM-style dashboard with KPI tiles and sparklines
+- [x] Global search, guided tour, consent disclaimer
 
 ### Phase 2: TARA Attack Injection
 - [ ] Attack parameter UI (select technique, configure intensity)
 - [ ] Signal injection engine (overlay attack on clean stream)
 - [ ] Before/after visual comparison
 - [ ] NISS scoring integration (proposed metric)
+- [ ] BrainFlow insert_marker() for event correlation
 
 ### Phase 3: Neurowall Firewall
 - [ ] Rule engine: configurable detection rules
 - [ ] Real-time detection overlay
-- [ ] Block/alert visualization
+- [ ] Block/alert visualization with outcome preview
 - [ ] Detection metrics dashboard
+- [ ] BrainFlow DataFilter integration (bandpass, notch, wavelet denoising)
 
 ### Phase 4: Polish and Package
-- [ ] Professional SIEM-style UI theme
-- [ ] Session recording and replay
+- [ ] BCI user accessibility testing and feedback integration
+- [ ] Session recording via BrainFlow add_streamer()
+- [ ] MLModel integration (mindfulness/restfulness classifiers)
 - [ ] PDF report generation
 - [ ] Electron packaging for desktop distribution
-- [ ] Documentation and tutorials
+- [ ] Role-based views (Researcher, Clinician, Security Analyst)
+
+## Quick Start
+
+```bash
+# Backend
+cd backend
+pip install brainflow fastapi uvicorn msgpack scipy
+python -m neurosim.main
+
+# Frontend
+cd frontend
+npm install --legacy-peer-deps
+npm run dev
+```
+
+Open `http://localhost:5173`. Click **Start Streaming** to begin.
 
 ## Prior Art & Gap Analysis
 
@@ -147,10 +211,20 @@ NeuroSIM is a standalone tool that uses QIF's TARA threat catalog and NISS scori
 
 TARA techniques, NISS scores, and Neurowall rules referenced in this tool are proposed and unvalidated. NeuroSIM is a research and demonstration tool, not a certified medical or security device.
 
+## Contributing
+
+We especially welcome contributions from:
+- **BCI users** — Your accessibility feedback shapes the product
+- **Neuroscience researchers** — Signal processing and brain map accuracy
+- **Security engineers** — Threat modeling and firewall rule design
+- **Frontend developers** — SIEM UX patterns and accessibility
+
+Open an Issue or Discussion to get started.
+
 ## License
 
-TBD
+MIT
 
 ---
 
-*Built by Kevin L. Qi — qinnovate.com*
+*Built by Kevin L. Qi — [qinnovate.com](https://qinnovate.com)*

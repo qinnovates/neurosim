@@ -1,46 +1,40 @@
 /**
- * Persistent sidebar navigation — collapsed icons, expand on hover.
- * Inspired by Grafana/Sentinel left nav.
+ * Persistent sidebar navigation — collapsed icons, expand on hover to show labels.
+ * Icons are grayscale by default, colored when active. Inspired by Grafana/Elastic Security.
  */
-import { NavLink } from "react-router-dom";
+import { useState } from "react";
+import { NavLink, useLocation } from "react-router-dom";
 import { MODULES, type ModuleDefinition } from "../../modules/registry";
 import { useData } from "../../contexts/DataContext";
 
-const STATUS_DOT: Record<string, string> = {
-  active: "bg-emerald-500",
-  "coming-soon": "bg-gray-600",
-  beta: "bg-amber-500",
-};
-
-function SidebarItem({ module }: { module: ModuleDefinition }) {
-  const isDisabled = module.status === "coming-soon";
-
-  if (isDisabled) {
-    return (
-      <div
-        className="group relative flex items-center justify-center w-10 h-10 rounded-lg opacity-30 cursor-not-allowed"
-        title={`${module.name} — Coming Soon`}
-      >
-        <module.Icon size={18} />
-        <Tooltip name={module.name} status="Coming Soon" />
-      </div>
-    );
-  }
+function SidebarItem({ module, expanded }: { module: ModuleDefinition; expanded: boolean }) {
+  const location = useLocation();
+  const isActive = location.pathname === module.path;
+  const isComingSoon = module.status === "coming-soon";
 
   return (
     <NavLink
       to={module.path}
-      className={({ isActive }) =>
-        `group relative flex items-center justify-center w-10 h-10 rounded-lg transition-colors ${
-          isActive
-            ? "bg-white/10 ring-1 ring-white/20"
-            : "hover:bg-white/5"
-        }`
-      }
-      title={module.name}
+      className={`group relative flex items-center gap-3 h-10 rounded-lg transition-all duration-200 px-2.5 ${
+        isActive
+          ? "bg-white/10 ring-1 ring-white/20"
+          : "hover:bg-white/5"
+      }`}
+      title={isComingSoon ? `${module.name} — Coming Soon` : module.name}
     >
-      <span className="text-lg">{module.icon}</span>
-      <Tooltip name={module.name} />
+      <module.Icon
+        size={18}
+        style={{ color: isActive ? module.color : "#6b7280" }}
+        className="flex-shrink-0 transition-colors duration-200"
+      />
+      {expanded && (
+        <span className={`text-[11px] whitespace-nowrap overflow-hidden transition-colors duration-200 ${
+          isActive ? "text-gray-200 font-medium" : isComingSoon ? "text-gray-600" : "text-gray-400"
+        }`}>
+          {module.shortName}
+        </span>
+      )}
+      {!expanded && <Tooltip name={module.name} status={isComingSoon ? "Coming Soon" : undefined} />}
     </NavLink>
   );
 }
@@ -56,38 +50,56 @@ function Tooltip({ name, status }: { name: string; status?: string }) {
 
 export function Sidebar() {
   const { connected, streaming, alertCount } = useData();
+  const [expanded, setExpanded] = useState(false);
+  const location = useLocation();
+  const isHome = location.pathname === "/";
 
   return (
-    <aside className="flex flex-col items-center w-14 bg-[#0d1117] border-r border-[#1f2937] py-3 gap-1 flex-shrink-0">
+    <aside
+      onMouseEnter={() => setExpanded(true)}
+      onMouseLeave={() => setExpanded(false)}
+      className={`flex flex-col bg-[#0d1117] border-r border-[#1f2937] py-3 gap-1 flex-shrink-0 transition-all duration-200 ${
+        expanded ? "w-40" : "w-14"
+      }`}
+      style={{ overflow: "hidden" }}
+    >
       {/* Logo / Home */}
       <NavLink
         to="/"
-        className="flex items-center justify-center w-10 h-10 mb-2 rounded-lg hover:bg-white/5 transition-colors group relative"
+        className={`flex items-center gap-3 h-10 mb-2 rounded-lg hover:bg-white/5 transition-colors group relative px-2.5 ${
+          isHome ? "bg-white/10 ring-1 ring-white/20" : ""
+        }`}
         title="Dashboard"
       >
-        <svg width="22" height="22" viewBox="0 0 32 32">
+        <svg width="22" height="22" viewBox="0 0 32 32" className="flex-shrink-0">
           <rect width="32" height="32" rx="4" fill="#0a0e17" />
           <path
             d="M8 16 Q12 8 16 16 Q20 24 24 16"
-            stroke="#10b981"
+            stroke={isHome ? "#10b981" : "#6b7280"}
             strokeWidth="2.5"
             fill="none"
             strokeLinecap="round"
+            style={{ transition: "stroke 0.2s" }}
           />
-          <circle cx="16" cy="16" r="2" fill="#ef4444" />
+          <circle cx="16" cy="16" r="2" fill={isHome ? "#10b981" : "#6b7280"} style={{ transition: "fill 0.2s" }} />
         </svg>
-        <Tooltip name="Dashboard" />
+        {expanded && (
+          <span className={`text-[11px] font-semibold whitespace-nowrap transition-colors duration-200 ${isHome ? "text-gray-200" : "text-gray-400"}`}>
+            Neural Atlas
+          </span>
+        )}
+        {!expanded && <Tooltip name="Dashboard" />}
       </NavLink>
 
-      <div className="w-6 h-px bg-[#1f2937] mb-1" />
+      <div className="w-6 h-px bg-[#1f2937] mb-1 mx-auto" />
 
       {/* Module nav items */}
       {MODULES.filter((m) => m.id !== "settings").map((mod) => (
-        <div key={mod.id} className="relative">
-          <SidebarItem module={mod} />
+        <div key={mod.id} className="relative px-2">
+          <SidebarItem module={mod} expanded={expanded} />
           {/* Alert badge on Alerts module */}
           {mod.id === "alerts" && alertCount > 0 && (
-            <span className="absolute -top-0.5 -right-0.5 w-3.5 h-3.5 bg-red-500 rounded-full text-[8px] text-white flex items-center justify-center font-bold">
+            <span className="absolute top-0.5 left-8 w-3.5 h-3.5 bg-amber-500 rounded-full text-[8px] text-white flex items-center justify-center font-bold">
               {alertCount > 99 ? "!" : alertCount}
             </span>
           )}
@@ -98,15 +110,17 @@ export function Sidebar() {
       <div className="flex-1" />
 
       {/* Settings */}
-      {MODULES.filter((m) => m.id === "settings").map((mod) => (
-        <SidebarItem key={mod.id} module={mod} />
-      ))}
+      <div className="px-2">
+        {MODULES.filter((m) => m.id === "settings").map((mod) => (
+          <SidebarItem key={mod.id} module={mod} expanded={expanded} />
+        ))}
+      </div>
 
       {/* Connection indicator */}
-      <div className="mt-2 flex flex-col items-center gap-1">
+      <div className="mt-2 flex flex-col items-center gap-1 px-2">
         <div
           className={`w-2.5 h-2.5 rounded-full ${
-            streaming ? "bg-emerald-500 animate-pulse" : connected ? "bg-emerald-500" : "bg-red-500 animate-pulse"
+            streaming ? "bg-emerald-500 animate-pulse" : connected ? "bg-emerald-500" : "bg-amber-500 animate-pulse"
           }`}
           title={streaming ? "Streaming" : connected ? "Connected" : "Disconnected"}
         />
