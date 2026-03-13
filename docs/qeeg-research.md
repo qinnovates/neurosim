@@ -17,6 +17,9 @@ Quantitative EEG (qEEG) is the mathematical/statistical analysis layer on top of
 - [Security-Relevant Insights](#security-relevant-insights)
 - [Standards & Guidelines](#standards--guidelines)
 - [Action Items](#action-items)
+- [Clinical Pattern Identification Strategy](#clinical-pattern-identification-strategy)
+- [KQL Data Lake Integration Plan](#kql-data-lake-integration-plan)
+- [Future Work & Whitepaper Connection](#future-work--whitepaper-connection)
 - [References](#references)
 
 ---
@@ -273,6 +276,253 @@ Tenney et al. (2021). *J Clinical Neurophysiology*, 38(4):287-292. DOI: [10.1097
 - [ ] Add TBR, FAA, DAR as optional display metrics in Spectrum Analyzer
 - [ ] Investigate EVA-Net architecture for normative deviation detection in Neurowall
 - [ ] Add adversarial attack detection rules to Neurowall based on literature patterns
+
+---
+
+## Clinical Pattern Identification Strategy
+
+> How we map qEEG patterns back to make them usable for clinical-grade signal identification in our modules.
+
+### The Problem
+Our modules currently compute raw metrics (RMS, basic frequency power, simple coherence). Clinical qEEG goes further — it compares individual signals against population baselines, identifies condition-specific signatures, and flags deviations that correspond to known pathological or adversarial patterns.
+
+### Step 1: Baseline Profiling
+Before identifying anomalies, establish what "normal" looks like for each user session:
+
+1. **Capture 2-minute resting baseline** (eyes open + eyes closed) at session start
+2. **Compute per-channel metrics:** absolute power per band, relative power per band, PAF, SampEn
+3. **Store as session baseline** in Session Recorder
+4. **Compare against ISB-NormDB z-score methodology** (age/sex-matched GAM curves) when demographics are available
+
+### Step 2: Pattern Library
+Build a pattern library mapping signal signatures to known conditions. Each pattern entry includes:
+
+```
+{
+  "pattern_id": "ADHD_TBR_ELEVATED",
+  "condition": "ADHD",
+  "metrics": {
+    "tbr_cz": { "threshold": ">3.0", "band": "theta/beta at Cz" },
+    "paf": { "threshold": "<9.0 Hz", "note": "slow PAF confound" }
+  },
+  "evidence_level": "investigational",
+  "clinical_note": "Not standalone diagnostic. Stratification aid only.",
+  "references": ["Arns2013", "NEBA_K112711"]
+}
+```
+
+**Patterns to implement (in priority order):**
+1. **Signal tampering** — absolute power z > 3.5, SampEn drop > 2 SD, wPLI anomaly (zero-lag injection)
+2. **TBI acute** — delta/theta increase > 2 SD, alpha decrease > 2 SD, diffuse slowing
+3. **Cognitive load** — alpha suppression, beta increase, frontal theta increase
+4. **ADHD profile** — elevated TBR, slow PAF (with PAF confound flag)
+5. **Depression markers** — FAA pattern, altered cordance, frontal theta
+6. **Alzheimer's/MCI** — progressive SampEn decline, alpha coherence reduction, dominant frequency slowing
+
+### Step 3: Real-Time Pattern Matching
+In Signal Monitor and NISS, run pattern matching every scoring cycle:
+
+1. Compute current metrics against session baseline
+2. Compute z-scores where normative data is available
+3. Match against pattern library
+4. Display matched patterns with evidence level and confidence
+5. **Never display as diagnosis** — always "pattern consistent with [condition] (for threat modeling purposes)"
+
+### Step 4: Cross-Module Integration
+- **NISS:** Pattern matches feed severity scoring. A signal that matches both "TBI acute" and "signal tampering" patterns gets higher severity than either alone
+- **Neurowall:** Pattern matches trigger firewall rules. Injection patterns auto-escalate to block/alert
+- **Brain Map:** Highlight electrodes involved in matched patterns with condition-specific color coding
+- **Spectrum Analyzer:** Overlay expected band power ranges for matched condition on the spectrum display
+
+---
+
+## KQL Data Lake Integration Plan
+
+> How qEEG metrics integrate with the existing KQL data lake architecture.
+
+### Current State
+The qinnovate KQL data lake (`src/lib/kql-tables.ts`) already has:
+- `eeg_electrodes` — electrode positions and metadata
+- `eeg_samples` — tagged sample datasets
+- TARA techniques with NISS scores
+- DSM-5 diagnostic category mappings
+
+### New Tables Needed
+
+#### `qeeg_metrics`
+Per-session computed metrics for analysis and historical comparison.
+
+```
+| Column | Type | Description |
+|--------|------|-------------|
+| session_id | string | Links to session recorder |
+| timestamp | datetime | Computation time |
+| channel | string | Electrode name (10-20) |
+| absolute_power_delta | number | µV²/Hz in 1-4 Hz |
+| absolute_power_theta | number | µV²/Hz in 4-8 Hz |
+| absolute_power_alpha | number | µV²/Hz in 8-12 Hz |
+| absolute_power_beta | number | µV²/Hz in 12-30 Hz |
+| absolute_power_gamma | number | µV²/Hz in 30-80 Hz |
+| relative_power_delta | number | 0-1 proportion |
+| relative_power_theta | number | 0-1 proportion |
+| relative_power_alpha | number | 0-1 proportion |
+| relative_power_beta | number | 0-1 proportion |
+| relative_power_gamma | number | 0-1 proportion |
+| paf | number | Peak alpha frequency (Hz) |
+| sample_entropy | number | SampEn value |
+| rms_amplitude | number | µV |
+```
+
+#### `qeeg_connectivity`
+Cross-channel connectivity metrics.
+
+```
+| Column | Type | Description |
+|--------|------|-------------|
+| session_id | string | Links to session recorder |
+| timestamp | datetime | Computation time |
+| channel_a | string | First electrode |
+| channel_b | string | Second electrode |
+| coherence_alpha | number | Magnitude squared coherence in alpha band |
+| wpli_alpha | number | Weighted phase lag index in alpha band |
+| wpli_theta | number | wPLI in theta band |
+| wpli_beta | number | wPLI in beta band |
+| phase_lag | number | Mean phase difference (radians) |
+```
+
+#### `qeeg_patterns`
+Pattern library for condition identification.
+
+```
+| Column | Type | Description |
+|--------|------|-------------|
+| pattern_id | string | Unique identifier |
+| condition | string | Clinical condition or threat type |
+| category | string | clinical | security | cognitive_state |
+| metric_rules | string | JSON rules for pattern matching |
+| evidence_level | string | established | investigational | research |
+| sensitivity_to_injection | string | high | medium | low |
+| references | string | Citation keys |
+| clinical_note | string | Mandatory qualifier for display |
+```
+
+#### `qeeg_zscore_norms`
+Normative reference data (derived from ISB-NormDB methodology).
+
+```
+| Column | Type | Description |
+|--------|------|-------------|
+| age_years | number | Age in years |
+| sex | string | M | F |
+| channel | string | Electrode name |
+| metric | string | Which metric this norm applies to |
+| mean | number | Population mean |
+| sd | number | Population standard deviation |
+| condition | string | eyes_open | eyes_closed |
+```
+
+### KQL Query Examples
+
+**Find sessions with potential injection signatures:**
+```kql
+qeeg_metrics
+| where sample_entropy < 0.3
+| where absolute_power_alpha > 500
+| join kind=inner (qeeg_connectivity | where wpli_alpha < 0.05) on session_id, timestamp
+| project session_id, timestamp, channel, sample_entropy, absolute_power_alpha
+| order by timestamp desc
+```
+
+**Compute z-scores against norms:**
+```kql
+qeeg_metrics
+| join kind=inner qeeg_zscore_norms on channel
+| extend z_alpha = (absolute_power_alpha - mean) / sd
+| where abs(z_alpha) > 3.5
+| project session_id, channel, z_alpha, absolute_power_alpha
+```
+
+**Match ADHD pattern:**
+```kql
+qeeg_metrics
+| where channel == "Cz"
+| extend tbr = absolute_power_theta / absolute_power_beta
+| where tbr > 3.0 and paf < 9.0
+| project session_id, timestamp, tbr, paf
+```
+
+### Tagging & Analysis Pipeline
+
+Every EEG recording session gets tagged with computed qEEG features:
+
+1. **Ingestion:** Raw EEG recorded in Session Recorder
+2. **Compute:** Run qEEG metric extraction (PSD, connectivity, entropy) post-session
+3. **Tag:** Auto-tag session with matched patterns from pattern library
+4. **Store:** Insert rows into `qeeg_metrics`, `qeeg_connectivity` tables
+5. **Query:** All modules can KQL-query the computed data for analysis, comparison, trending
+6. **Export:** BIDS-EEG format for external tool compatibility (MNE, EEGLAB)
+
+### Integration with Existing TARA Data
+
+Each TARA technique already has a NISS score. The qEEG integration adds a new dimension — **expected signal signature per technique:**
+
+```kql
+tara_techniques
+| join kind=inner qeeg_patterns on $left.technique_id == $right.pattern_id
+| project technique_id, name, niss_score, pattern_id, metric_rules, sensitivity_to_injection
+```
+
+This lets Neurowall detect not just "something is wrong" but "this looks like TARA technique T-AMP-001 (amplitude injection)" based on the signal signature.
+
+---
+
+## Future Work & Whitepaper Connection
+
+> How this qEEG integration connects to the QIF whitepaper roadmap.
+
+### Connection to Whitepaper Section 11 ("What's Next")
+
+The whitepaper's NISS v2.0 roadmap calls for "five new weighting factors (reversibility severity, functional impact domains, pathway specificity, clinical evidence strength, modality criticality)" and "extended clinical outcome mapping." qEEG integration directly enables this:
+
+| Whitepaper Roadmap Item | qEEG Contribution |
+|-------------------------|-------------------|
+| **NISS v2.0 weighting factors** | qEEG metrics provide the signal-level evidence for each factor. Clinical evidence strength can be derived from the evidence_level field in the pattern library. Pathway specificity maps to which electrodes/channels are affected |
+| **Extended clinical outcome mapping** | The clinical patterns reference table maps qEEG signatures to conditions with evidence levels. This is the data source for clinical outcome mapping — not clinical claims, but threat modeling categories |
+| **Calibrate weights via expert elicitation** | qEEG normative databases (ISB-NormDB) provide population-level statistical baselines against which NISS weights can be calibrated. Z-score deviations give a principled basis for severity thresholds |
+| **NSP reference implementation** | NSP Layer 3 (Filter) and Layer 4 (Features) map directly to qEEG computations. Welch PSD, wPLI, SampEn are the feature extraction methods NSP would standardize |
+| **Runemate protocol inspection** | Runemate's pipeline stages (Raw ADC > Transport > Filter > Features > Classification > App) correspond to the qEEG processing chain. Each stage can be inspected with qEEG-standard metrics |
+
+### Connection to Whitepaper Section 12 (Limitations)
+
+The whitepaper acknowledges "no empirical validation on real BCI devices." qEEG integration addresses this gap:
+
+1. **Open datasets exist** — TUH EEG Corpus (16,986 sessions) provides real clinical EEG data for validation, even without hardware access
+2. **Normative baselines exist** — ISB-NormDB's 1,289-subject database gives statistical grounding to NISS thresholds that are currently arbitrary
+3. **The adversarial attack literature exists** — published attacks on EEG-based BCIs validate the threat model with reproducible results
+
+### Proposed Whitepaper Addition
+
+Add a subsection to Section 11 (or a new Section 11.5):
+
+> **11.x qEEG Integration**
+>
+> NISS scoring currently uses signal-level metrics computed from first principles. The quantitative EEG (qEEG) field provides decades of validated methods for the same computations — spectral analysis, connectivity metrics, normative comparison — plus open-access normative databases and standardized data formats (BIDS-EEG). QIF's next phase integrates established qEEG methodology into NISS, Neurowall, and the Demo Atlas:
+>
+> - Replace naive DFT with Welch PSD and multitaper methods (standard in MNE-Python, EEGLAB)
+> - Adopt wPLI (weighted Phase Lag Index) as the primary connectivity metric, replacing cross-channel RMS variance — wPLI is inherently resistant to volume conduction artifacts, making it more suitable for distinguishing biological signals from injected signals
+> - Add Sample Entropy (SampEn) as a NISS component — injected signals produce measurably lower entropy than biological neural noise
+> - Reference ISB-NormDB z-score methodology for age/sex-matched baseline comparison
+> - Build a pattern library mapping TARA techniques to expected qEEG signatures, enabling Neurowall to identify specific attack types by their signal fingerprint
+> - Export session data in BIDS-EEG format for interoperability with MNE-Python, EEGLAB, and the broader neuroscience tool ecosystem
+>
+> The adversarial EEG attack literature (Meng et al. 2024, Liu et al. 2024, Yi et al. 2024) validates NISS's threat model: small-amplitude signal perturbations can cause catastrophic BCI classification failures while remaining visually imperceptible. qEEG metrics — particularly SampEn and wPLI — detect these perturbations where visual inspection and simple amplitude thresholds cannot.
+
+### Open Questions for Future Research
+1. **Can ISB-NormDB z-scores serve as NISS severity thresholds?** If a signal deviates >3.5 SD from age/sex norms, is that sufficient to flag as "high" severity? Needs validation against known attack signatures
+2. **Does SampEn reliably distinguish biological artifacts from adversarial injection?** Muscle artifacts also produce low entropy — how to differentiate?
+3. **Can EVA-Net's normative manifold architecture be adapted for real-time Neurowall detection?** Current EVA-Net is offline/batch — needs streaming adaptation
+4. **What's the minimum electrode count for reliable qEEG pattern matching?** Consumer devices have 4-8 channels vs. clinical 19-channel. Which patterns survive downsampling?
+5. **How do qEEG metrics behave under the specific TARA techniques?** No published study has measured SampEn/wPLI/PAF changes under each TARA attack category. This is a gap we can fill with synthetic data in the Demo Atlas
 
 ---
 
