@@ -93,6 +93,33 @@ class EEGStreamer:
         elif action == "set_threshold":
             threshold = cmd.get("value", self.config.amplitude_threshold)
             self.detector.set_threshold(float(threshold))
+        elif action == "load_dataset":
+            csv_path = cmd.get("path", "")
+            if csv_path:
+                await self.start_csv_playback(csv_path)
+
+    async def start_csv_playback(self, csv_path: str) -> None:
+        """Stop current stream, load a CSV dataset, and start playback."""
+        if self.board.is_running:
+            self.board.stop()
+
+        try:
+            board_info = self.board.start_csv(csv_path)
+        except (FileNotFoundError, ValueError) as e:
+            logger.error("Failed to load dataset: %s", e)
+            return
+
+        self.config.sample_rate = board_info["sample_rate"]
+        self._start_time = time.time()
+        self._seq = 0
+        self._band_buffer = []
+        self._band_sample_count = 0
+
+        config_msg = encode_config(board_info)
+        await self._broadcast(config_msg)
+
+        asyncio.create_task(self._stream_loop())
+        logger.info("CSV playback started: %s", csv_path)
 
     async def _stream_loop(self) -> None:
         """Main polling loop: get data, process, broadcast."""

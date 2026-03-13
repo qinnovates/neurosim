@@ -306,6 +306,35 @@ for ch in eeg_channels:
 }
 
 function DatasetsTab() {
+  const { send, connected, streaming } = useData();
+  const [activeDataset, setActiveDataset] = useState<string | null>(null);
+  const [datasets, setDatasets] = useState<{ file: string; path: string; available: boolean }[] | null>(null);
+  const [loadError, setLoadError] = useState<string | null>(null);
+
+  // Fetch dataset paths from backend on mount
+  useState(() => {
+    fetch(`http://${window.location.hostname}:8765/api/datasets`)
+      .then((r) => r.json())
+      .then((data) => setDatasets(data.datasets))
+      .catch(() => setDatasets(null));
+  });
+
+  const loadDataset = (file: string) => {
+    if (!connected) {
+      setLoadError("Not connected to backend. Start the backend server first.");
+      return;
+    }
+    // Find the absolute path from the backend response
+    const ds = datasets?.find((d) => d.file === file);
+    if (!ds) {
+      setLoadError("Dataset path not found. Refresh and try again.");
+      return;
+    }
+    setLoadError(null);
+    setActiveDataset(file);
+    send({ action: "load_dataset", path: ds.path });
+  };
+
   return (
     <div className="space-y-4">
       {/* Info banner */}
@@ -316,24 +345,63 @@ function DatasetsTab() {
           from published neuroscience paradigms. They are NOT real brain recordings. Use them for testing, learning,
           and development. All datasets use 16 channels (10-20 system) at 250 Hz.
         </p>
+        {connected && (
+          <p className="text-[10px] text-emerald-400 mt-2">
+            Backend connected — click "Load & Stream" on any dataset to play it through all modules.
+          </p>
+        )}
+        {!connected && (
+          <p className="text-[10px] text-amber-400 mt-2">
+            Backend not connected. Start the server to enable live dataset playback.
+          </p>
+        )}
       </div>
+
+      {loadError && (
+        <div className="bg-red-500/5 border border-red-500/20 rounded-xl px-4 py-2.5 text-[10px] text-red-400">
+          {loadError}
+        </div>
+      )}
 
       {/* Dataset grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-        {SAMPLE_DATASETS.map((ds) => (
-          <div key={ds.file} className="bg-[#111827] border border-[#1f2937] rounded-lg p-3 hover:border-[#374151] transition-colors">
-            <div className="flex items-start justify-between mb-1">
-              <span className="text-[12px] font-semibold text-gray-200">{ds.name}</span>
-              <span className="mono text-[9px] text-gray-600">{ds.duration}</span>
+        {SAMPLE_DATASETS.map((ds) => {
+          const isActive = activeDataset === ds.file && streaming;
+          const backendDs = datasets?.find((d) => d.file === ds.file);
+          const isAvailable = backendDs?.available !== false;
+
+          return (
+            <div key={ds.file} className={`bg-[#111827] border rounded-lg p-3 transition-colors ${
+              isActive ? "border-cyan-500/50" : "border-[#1f2937] hover:border-[#374151]"
+            }`}>
+              <div className="flex items-start justify-between mb-1">
+                <span className="text-[12px] font-semibold text-gray-200">{ds.name}</span>
+                <span className="mono text-[9px] text-gray-600">{ds.duration}</span>
+              </div>
+              <p className="text-[10px] text-gray-500 mb-2">{ds.description}</p>
+              <div className="flex items-center gap-3 text-[9px] mono mb-2">
+                <span className="text-gray-600">Paradigm: <span className="text-cyan-400">{ds.paradigm}</span></span>
+                <span className="text-gray-600">Band: <span className="text-purple-400">{ds.dominantBand}</span></span>
+              </div>
+              <div className="flex items-center justify-between">
+                <code className="text-[9px] mono text-gray-700">data/{ds.file}</code>
+                {connected && isAvailable && (
+                  <button
+                    onClick={() => loadDataset(ds.file)}
+                    disabled={isActive}
+                    className={`mono text-[9px] px-2.5 py-1 rounded-lg border transition-colors ${
+                      isActive
+                        ? "bg-cyan-500/15 text-cyan-400 border-cyan-500/30"
+                        : "text-gray-400 border-[#1f2937] hover:bg-cyan-500/10 hover:text-cyan-400 hover:border-cyan-500/30"
+                    }`}
+                  >
+                    {isActive ? "Streaming..." : "Load & Stream"}
+                  </button>
+                )}
+              </div>
             </div>
-            <p className="text-[10px] text-gray-500 mb-2">{ds.description}</p>
-            <div className="flex items-center gap-3 text-[9px] mono">
-              <span className="text-gray-600">Paradigm: <span className="text-cyan-400">{ds.paradigm}</span></span>
-              <span className="text-gray-600">Band: <span className="text-purple-400">{ds.dominantBand}</span></span>
-            </div>
-            <code className="block mt-1.5 text-[9px] mono text-gray-700">data/{ds.file}</code>
-          </div>
-        ))}
+          );
+        })}
       </div>
 
       {/* Load dataset code */}

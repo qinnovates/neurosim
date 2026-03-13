@@ -1,7 +1,9 @@
 """NeuroSIM backend: FastAPI app with WebSocket EEG streaming."""
 
+import json
 import logging
 from contextlib import asynccontextmanager
+from pathlib import Path
 
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
@@ -49,6 +51,37 @@ async def health():
     return {
         "status": "ok",
         "streaming": streamer.board.is_running,
+    }
+
+
+@app.get("/api/datasets")
+async def list_datasets():
+    """List available sample EEG datasets."""
+    data_dir = Path(__file__).resolve().parent.parent.parent / "data"
+    manifest_path = data_dir / "manifest.json"
+
+    if not manifest_path.exists():
+        return {"datasets": [], "data_dir": str(data_dir)}
+
+    with open(manifest_path) as f:
+        manifest = json.load(f)
+
+    # Add absolute paths so frontend can request loading
+    datasets = []
+    for ds in manifest.get("datasets", []):
+        csv_path = data_dir / ds["file"]
+        datasets.append({
+            **ds,
+            "path": str(csv_path),
+            "available": csv_path.exists(),
+        })
+
+    return {
+        "datasets": datasets,
+        "data_dir": str(data_dir),
+        "sample_rate": manifest.get("sample_rate", 250),
+        "channels": manifest.get("channels", 16),
+        "channel_names": manifest.get("channel_names", []),
     }
 
 
