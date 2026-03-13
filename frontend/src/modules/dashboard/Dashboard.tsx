@@ -249,7 +249,7 @@ function QuickStartHero() {
         <div className="flex gap-2 flex-wrap">
           {[
             { path: "/signal", label: "Signal Monitor", color: "#10b981" },
-            { path: "/spectrum", label: "Spectrum Analyzer", color: "#a855f7" },
+            { path: "/signal", label: "Spectrum Analyzer", color: "#a855f7" },
             { path: "/alerts", label: "Alert Center", color: "#ef4444" },
             { path: "/tara", label: "TARA Scanner", color: "#f59e0b" },
           ].map((link) => (
@@ -373,8 +373,8 @@ function GettingStarted() {
     {
       label: "Analyze frequency bands",
       done: false,
-      action: "Check Spectrum Analyzer for band power breakdown",
-      onClick: () => navigate("/spectrum"),
+      action: "Check Spectrum Analyzer tab in Signal Monitor",
+      onClick: () => navigate("/signal"),
     },
     {
       label: "Explore the platform",
@@ -520,7 +520,7 @@ export default function Dashboard() {
 
       {/* Module grid by category */}
       {categories.map((cat) => {
-        const mods = MODULES.filter((m) => m.category === cat);
+        const mods = MODULES.filter((m) => m.category === cat && !m.hidden);
         const catInfo = CATEGORIES[cat];
         return (
           <div key={cat} className="mb-6">

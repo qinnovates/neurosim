@@ -890,7 +890,11 @@ function DsmAnalysisTab({ bands, streaming }: { bands: BandPowers; streaming: bo
 
 type Tab = "spectrum" | "dsm";
 
-export default function SpectrumModule() {
+/**
+ * SpectrumContent — inner content without ModuleShell wrapper.
+ * Used by SignalModule (embedded tab) and standalone SpectrumModule.
+ */
+export function SpectrumContent() {
   const { bands, channelNames, streaming } = useData();
   const [tab, setTab] = useState<Tab>("spectrum");
 
@@ -900,7 +904,7 @@ export default function SpectrumModule() {
   ];
 
   return (
-    <ModuleShell module={MODULE}>
+    <>
       {/* Tab bar */}
       <div className="flex gap-1 mb-4 border-b border-[#1f2937] pb-2">
         {tabs.map((t) => (
@@ -925,6 +929,14 @@ export default function SpectrumModule() {
         </div>
       )}
       {tab === "dsm" && <DsmAnalysisTab bands={bands} streaming={streaming} />}
+    </>
+  );
+}
+
+export default function SpectrumModule() {
+  return (
+    <ModuleShell module={MODULE}>
+      <SpectrumContent />
     </ModuleShell>
   );
 }

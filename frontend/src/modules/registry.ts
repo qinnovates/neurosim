@@ -25,6 +25,8 @@ export interface ModuleDefinition {
   path: string;
   component: LazyExoticComponent<ComponentType>;
   color: string; // Accent color for the tile
+  /** Hide from sidebar/dashboard — module still routable but accessed via parent tab */
+  hidden?: boolean;
 }
 
 export const CATEGORIES: Record<ModuleCategory, { label: string; description: string }> = {
@@ -162,6 +164,7 @@ export const MODULES: ModuleDefinition[] = [
     id: "spectrum",
     name: "Spectrum Analyzer",
     shortName: "Spectrum",
+    hidden: true, // Accessed via Signal Monitor > Spectrum tab
     description: "Break down brain signals into frequency bands to see which types of brain activity are dominant.",
     detailedHelp:
       "Brain signals contain multiple frequencies mixed together, like instruments in an orchestra. The Spectrum Analyzer separates them into bands: Delta (0.5-4 Hz, deep sleep), Theta (4-8 Hz, drowsiness/meditation), Alpha (8-13 Hz, relaxed/eyes closed), Beta (13-30 Hz, active thinking), and Gamma (30-100 Hz, complex processing). The bars show how much power is in each band. This is the same analysis neuroscientists use in research labs.",

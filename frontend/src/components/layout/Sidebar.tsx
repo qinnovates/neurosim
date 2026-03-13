@@ -139,7 +139,7 @@ export function Sidebar() {
       <div className="w-6 h-px bg-[#1f2937] mb-1 mx-auto" />
 
       {/* Module nav items */}
-      {MODULES.filter((m) => m.id !== "settings").map((mod) => (
+      {MODULES.filter((m) => m.id !== "settings" && !m.hidden).map((mod) => (
         <div key={mod.id} className="relative px-2">
           <SidebarItem module={mod} expanded={expanded} />
           {/* Alert badge on Alerts module */}
