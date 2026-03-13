@@ -218,7 +218,7 @@ export const MODULES: ModuleDefinition[] = [
       "The Session Recorder lets you capture everything — raw signals, detections, alerts — into a session file. You can replay sessions to review what happened, compare different sessions, or export data for analysis in other tools (MNE-Python, MATLAB, etc.). Sessions are saved locally and can be shared as standard EEG data files.",
     icon: "⏺️",
     Icon: IconSession,
-    status: "coming-soon",
+    status: "active",
     category: "tools",
     path: "/session",
     component: lazy(() => import("./session/SessionModule")),
