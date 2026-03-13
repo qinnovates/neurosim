@@ -14,7 +14,8 @@ import { StreamControls } from "./components/controls/StreamControls";
 import { StatusBar } from "./components/layout/StatusBar";
 import type { ServerMessage } from "./lib/protocol";
 
-const WS_URL = `ws://${window.location.hostname}:8765/ws`;
+// Use the Vite proxy in dev, direct connection in production
+const WS_URL = `ws://${window.location.host}/ws`;
 
 export default function App() {
   const [streaming, setStreaming] = useState(false);
